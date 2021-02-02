@@ -4,13 +4,14 @@
 //
 //  Created by Rick Brown on 01/02/2021.
 //
-
 import SpriteKit
 import GameplayKit
 
 class GameScene: SKScene {
   var colorWheelBase = SKShapeNode()
   let spinColorWheel = SKAction.rotate(byAngle: -convertDegreesToRadians(degrees: 360 / 7), duration: 0.2)
+  var currentGameState: gameState = .beforeGame
+  let tapToStartLabel = SKLabelNode(fontNamed: "Caviar Dreams")
   
   override func didMove(to view: SKView) {
     let background = SKSpriteNode(imageNamed: "gameBackground")
@@ -26,6 +27,12 @@ class GameScene: SKScene {
     self.addChild(colorWheelBase)
     
     prepColorWheel()
+    
+    tapToStartLabel.text = "Tap To Start"
+    tapToStartLabel.fontSize = 100
+    tapToStartLabel.fontColor = SKColor.darkGray
+    tapToStartLabel.position = CGPoint(x: self.size.width / 2, y: self.size.height * 0.1)
+    self.addChild(tapToStartLabel)
   }
   
   func prepColorWheel() {
@@ -38,10 +45,38 @@ class GameScene: SKScene {
       
       colorWheelBase.zRotation += convertDegreesToRadians(degrees: 360 / 7)
     }
+    
+    for side in colorWheelBase.children {
+      let sidePosition = side.position
+      let positionInScene = convert(sidePosition, from: colorWheelBase)
+      sidePositions.append(positionInScene)
+    }
+  }
+  
+  func spawnBall() {
+    let ball = Ball()
+    ball.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2)
+    ball.zPosition = 1
+    self.addChild(ball)
+  }
+  
+  func startTheGame() {
+    spawnBall()
+    currentGameState = .inGame
+    let reduceAnimation = SKAction.scale(to: 0, duration: 0.2)
+    let removeLabel = SKAction.removeFromParent()
+    let sequence = SKAction.sequence([reduceAnimation, removeLabel])
+    tapToStartLabel.run(sequence)
   }
   
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-    colorWheelBase.run(spinColorWheel)
+    if currentGameState == .beforeGame {
+      // Start the game
+      startTheGame()
+    } else if currentGameState == .inGame {
+      // Spin the color wheel
+      colorWheelBase.run(spinColorWheel)
+    }
   }
   
 }
