@@ -78,6 +78,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
       colorWheelBase.zRotation += convertDegreesToRadians(degrees: 360 / 7)
     }
     
+    colorWheelBase.setScale(0.9)
+    
     for side in colorWheelBase.children {
       let sidePosition = side.position
       let positionInScene = convert(sidePosition, from: colorWheelBase)
