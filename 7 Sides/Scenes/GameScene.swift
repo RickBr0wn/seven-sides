@@ -11,14 +11,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
   var colorWheelBase = SKShapeNode()
   let spinColorWheel = SKAction.rotate(byAngle: -convertDegreesToRadians(degrees: 360 / 7), duration: 0.2)
   let playSound = SKAction.playSoundFileNamed("sound_fx.wav", waitForCompletion: false)
-  var currentGameState: gameState = .beforeGame
+  var currentGameState: gameState = .titleScreen
   let tapToStartLabel = SKLabelNode(fontNamed: "Caviar Dreams")
   let scoreLabelNode = SKLabelNode(fontNamed: "Caviar Dreams")
   var highScore = UserDefaults.standard.integer(forKey: "highScoreSaved")
   let highScoreLabelNode = SKLabelNode(fontNamed: "Caviar Dreams")
+  let playIncorrectSound = SKAction.playSoundFileNamed("wrong_sound_fx.wav", waitForCompletion: false)
   
   // MARK: didMove(to view: SKView)
   override func didMove(to view: SKView) {
+    score = 0
+    ballMovementSpeed = 2
     // Instantiate the physics body.
     // This line will ensure that the didBegin(_ contact: SKPhysicsContact) function runs whenever 2 physics bodies make contact.
     self.physicsWorld.contactDelegate = self
@@ -31,7 +34,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     self.addChild(background)
     
     // MARK: colorWheelBase
-    // Add the 'invisible' box that will carry the 'Side's of the color wheel
+    // Add an 'invisible' box that will carry the 'Side's of the color wheel
     colorWheelBase = SKShapeNode(rectOf: CGSize(width: self.size.width * 0.8, height: self.size.width * 0.8))
     colorWheelBase.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2)
     colorWheelBase.fillColor = SKColor.clear
@@ -67,7 +70,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
   func prepColorWheel() {
     for index in 0...6 {
       let side = Side(type: colorWheelOrder[index])
-      let basePosition = CGPoint(x: self.size.width / 2, y: self.size.height * 0.25)
+      let basePosition = CGPoint(x: self.size.width / 2, y: (self.size.height * 0.30) - 6)
       side.position = convert(basePosition, to: colorWheelBase)
       side.zRotation = -colorWheelBase.zRotation
       colorWheelBase.addChild(side)
@@ -102,9 +105,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     tapToStartLabel.run(sequence)
   }
   
-  //MARK: touchesBegan(_ touches:, with event:)
+  //MARK: touchesBegan(touches:, event:)
   override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-    if currentGameState == .beforeGame {
+    if currentGameState == .titleScreen {
       // Start the game
       startTheGame()
     } else if currentGameState == .inGame {
@@ -137,7 +140,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     if ball.type == side.type {
       correctMatch(ball: ball)
     } else {
-      wrongMatch()
+      wrongMatch(ball: ball)
     }
   }
   
@@ -173,12 +176,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
   }
   
   // MARK: wrongMatch()
-  func wrongMatch() {
+  func wrongMatch(ball: Ball) {
     // End of the game
     if score > highScore {
       highScore = score
       UserDefaults.standard.set(highScore, forKey: "highScoreSaved")
     }
+    
+    ball.flash()
+    self.run(playIncorrectSound)
+    currentGameState = .gameOver
+    
+    colorWheelBase.removeAllActions()
+    
+    let waitToChangeScene = SKAction.wait(forDuration: 3)
+    let changeScene = SKAction.run {
+      let sceneToMoveTo = GameOverScene(fileNamed: "GameOverScene")!
+      sceneToMoveTo.scaleMode = self.scaleMode
+      let sceneTransition = SKTransition.fade(withDuration: 0.5)
+      self.view!.presentScene(sceneToMoveTo, transition: sceneTransition )
+    }
+    let transitionSequence = SKAction.sequence([waitToChangeScene, changeScene])
+    self.run(transitionSequence)
   }
   
 }

@@ -19,7 +19,7 @@ var sidePositions: [CGPoint] = []
 
 // Game State
 enum gameState {
-  case beforeGame, inGame
+  case titleScreen, inGame, gameOver
 }
 
 // Physics categories

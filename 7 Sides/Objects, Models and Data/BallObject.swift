@@ -12,6 +12,7 @@ class Ball: SKSpriteNode {
   var type: colorType
   var isActive: Bool = true
   
+  // MARK: init()
   init() {
     let randomTypeIndex = Int(arc4random()%7)
     self.type = colorWheelOrder[randomTypeIndex]
@@ -40,6 +41,7 @@ class Ball: SKSpriteNode {
     fatalError("init(coder:) has not been implemented")
   }
   
+  // MARK: delete()
   func delete() {
     self.isActive = false
     self.removeAllActions()
@@ -48,5 +50,19 @@ class Ball: SKSpriteNode {
     let sequence = SKAction.sequence([scaleDownBall, deleteBall])
     self.run(sequence)
   }
+  
+  // MARK: flash()
+  func flash() {
+    self.removeAllActions()
+    self.isActive = false
+    
+    let fadeOut = SKAction.fadeOut(withDuration: 0.4)
+    let fadeIn = SKAction.fadeIn(withDuration: 0.4)
+    let flashSequence = SKAction.sequence([fadeOut, fadeIn])
+    let repeatFlash = SKAction.repeat(flashSequence, count: 3)
+    
+    self.run(repeatFlash)
+  }
+  
   
 }
